@@ -10,7 +10,29 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  security-scans:
+    name: Security Scans
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Secret Scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: SAST Scanning (Semgrep)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "auto"
+
   build-and-push-images:
+    needs: security-scans
     runs-on: ubuntu-latest
     permissions:
       contents: read
